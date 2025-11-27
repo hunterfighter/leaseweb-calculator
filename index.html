@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Leaseweb Cloud Quote Generator</title>
+<link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+<header>
+  <img src="leaseweb.svg" alt="Leaseweb Logo" class="logo">
+  <h1>Leaseweb Cloud Pricing Calculator</h1>
+</header>
+
+
+<div class="container">
+<!--<h1>💻 Cloud Infrastructure Quote Generator</h1>-->
+<p>First, **Select** your pricing region and click **"Set Region"**. Then, configure your instances and bandwidth to build your estimated monthly quote.</p>
+
+<div class="section-group">
+    <div class="region-select-row">
+        <label for="entitySelect">Select Pricing Region:</label>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <select id="entitySelect" style="max-width: 200px; flex-grow: 1; margin-bottom: 0;"></select>
+            <button id="setRegionButton" onclick="setRegion()" disabled style="margin-bottom: 10px;">📍 Set Region</button> 
+            <button id="resetButton" onclick="resetForm()" disabled style="margin-bottom: 10px;">🔄 Reset</button>
+        </div>
+        <div id="regionStatusMessage" class="status-message"></div>
+        <div id="loadingError" class="error-message" style="display: none;"></div>
+    </div>
+    
+    <div class="instance-select-row">
+        <label for="instanceSelect">Select Instance Type:</label>
+        <select id="instanceSelect" disabled>
+            <option value="">-- Select a Region First --</option>
+        </select>
+    </div>
+</div>
+<div id="specCard" class="instance-card">
+    <h3>Selected Instance Specifications</h3>
+    <div id="specDetails">
+        <p>Please select an instance type to begin configuration.</p>
+    </div>
+    
+    <div class="config-section-full">
+        <div class="config-column-main">
+            <label>Storage Type Configuration (per instance):</label>
+            <div id="storageTypeRadios" class="radio-group">
+                <span style="font-weight: 500;">Type:</span>
+                <input type="radio" id="storageLocal" name="storageType" value="Local" checked disabled>
+                <label for="storageLocal" class="radio-label">Local</label>
+                <input type="radio" id="storageNetwork" name="storageType" value="Network" disabled>
+                <label for="storageNetwork" class="radio-label">Network (Central)</label>
+            </div>
+            <small id="storageNote" class="config-note">Capacity is **5 GB Local** (included in instance price).</small>
+            
+            <div class="inline-capacity-qty-row">
+                <div class="inline-item">
+                    <label for="storageCapacity">Total Capacity (GB, integer only):</label> 
+                    <input type="number" id="storageCapacity" value="5" min="5" step="1" disabled>
+                </div>
+                <div class="inline-item">
+                    <label for="instanceQuantity">Quantity of Instances:</label>
+                    <input type="number" id="instanceQuantity" value="1" min="1" step="1" disabled>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="quote-action-row">
+        <button id="addToQuoteButton" onclick="addToQuote()" disabled>➕ Add Instance</button>
+    </div>
+</div>
+<div id="bandwidthCard" class="bandwidth-card full-width">
+    <h3>Global Bandwidth Traffic</h3>
+    <p>Set your estimated total monthly outgoing bandwidth. This is a global charge applied once to the quote.</p>
+    
+    <label for="bandwidthInput">Total Outgoing Bandwidth (TB):</label>
+    <div style="display: flex; gap: 10px; align-items: flex-end;">
+        <input type="number" id="bandwidthInput" value="1" min="0" step="0.01" disabled style="max-width: 120px; flex-grow: 0; margin-bottom: 20px;">
+        <button id="updateBandwidthButton" onclick="updateBandwidthInQuote()" disabled style="margin-bottom: 20px; background-color: #0073e6;">⚡ Update Bandwidth</button>
+    </div>
+    <small style="display: block; margin-top: -30px;">Allows decimals (e.g., 1.5). Includes 1 TB free tier.</small>
+</div>
+<h2>💰 Monthly Quote Summary (<span id="quoteCurrency"></span>)</h2>
+<table id="quoteSummary">
+    <thead>
+        <tr>
+            <th>Qty</th>
+            <th>Item / Type</th>
+            <th>Description</th>
+            <th class="quote-price-col">Price / Unit</th>
+            <th class="quote-price-col">Subtotal</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="quoteItems">
+        </tbody>
+    <tfoot>
+        <tr class="total-row">
+            <td colspan="4">Total Estimated Monthly Cost</td>
+            <td id="quoteTotal" class="quote-price-col">0.00</td>
+            <td></td>
+        </tr>
+    </tfoot>
+</table>
+<div class="quote-export-row">
+    <button id="exportButton" onclick="exportQuoteToCSV()" disabled style="background-color: #00a049; color: white;">⬇️ Export to CSV</button>
+</div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
