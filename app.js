@@ -220,9 +220,9 @@ function addToQuote() {
 
     // --- 2. Add Storage Cost ---
     let chargeableStorageGB = 0;
-    if (storageType === 'Network') {
+  //  if (storageType === 'Network') {
         chargeableStorageGB = Math.max(0, totalStorageGB - BASELINE_STORAGE_GB); 
-    }
+//    }
     
     if (chargeableStorageGB > 0) {
         
@@ -560,5 +560,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderQuoteItems();
 
 });
+
 
 
