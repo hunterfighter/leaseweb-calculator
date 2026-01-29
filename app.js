@@ -219,45 +219,7 @@ function addToQuote() {
     });
 
     // --- 2. Add Storage Cost ---
-    // --- Compute Storage Cost (Tiered pricing) ---
-let storageCost = 0;
-let storageArray = null;
-
-// Choose correct pricing array
-if (storageType === 'Network') {
-  storageArray = currentPricingData.local_storage;
-} else {
-  storageArray = currentPricingData.central_storage;
-}
-
-// Proceed only if storage selected
-if (totalStorageGB > 0 && storageArray && storageArray.length > 0) {
-  // Sort tiers by quantity (just in case)
-  storageArray.sort((a, b) => a.quantity_gb - b.quantity_gb);
-
-  // Find the highest applicable tier
-  let applicableTier = storageArray[0];
-  for (let tier of storageArray) {
-    if (totalStorageGB >= tier.quantity_gb) {
-      applicableTier = tier;
-    }
-  }
-
-  // Use the tier’s monthly price
-  storageCost = applicableTier.price_per_gb_month * totalStorageGB * quantity;
-
-  currentQuote.push({
-    item_id: `STORAGE_${storageType}_${Date.now()}`,
-    item_type: 'Storage',
-    description: `${storageType} Storage (${totalStorageGB} GB)`,
-    quantity: totalStorageGB,
-    price_per_unit: applicableTier.price_per_gb_month,
-    subtotal: storageCost,
-    price_decimals: 4
-  });
-}
-
- /*   let chargeableStorageGB = 0;
+    let chargeableStorageGB = 0;
     if (storageType === 'Network') {
         chargeableStorageGB = Math.max(0, totalStorageGB - BASELINE_STORAGE_GB); 
     }
@@ -285,7 +247,7 @@ if (totalStorageGB > 0 && storageArray && storageArray.length > 0) {
     }
     
     renderQuoteItems();
- */   
+    
     // --- Reset Configuration ---
     quantityInput.value = 1;
     document.getElementById('storageLocal').checked = true; 
@@ -598,4 +560,5 @@ document.addEventListener('DOMContentLoaded', () => {
     renderQuoteItems();
 
 });
+
 
