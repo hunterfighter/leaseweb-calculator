@@ -219,7 +219,40 @@ function addToQuote() {
     });
 
     // --- 2. Add Storage Cost ---
-    let chargeableStorageGB = 0;
+    let storageArray =
+      storageType === 'Network'
+        ? currentPricingData.local_storage
+        : currentPricingData.central_storage;
+
+    if (!storageArray || storageArray.length === 0) {
+      alert("Storage pricing data missing for this region");
+      return;
+    }
+
+    // Find applicable tier (largest tier <= selected size)
+    let applicableTier = storageArray[0];
+    for (let tier of storageArray) {
+      if (totalStorageGB >= tier.quantity_gb) {
+        applicableTier = tier;
+      } else {
+        break;
+      }
+    }
+
+    const pricePerGBMonth = applicableTier.price_per_gb_month;
+    const totalStoragePrice =
+      pricePerGBMonth * totalStorageGB * quantity;
+
+    currentQuote.push({
+      item_id: `STORAGE_${Date.now()}`,
+      item_type: 'Storage',
+      description: `${storageType} Storage (${totalStorageGB} GB, tier applied)`,
+      quantity: totalStorageGB * quantity,
+      price_per_unit: pricePerGBMonth,
+      subtotal: totalStoragePrice,
+      price_decimals: 4
+    });
+ /*   let chargeableStorageGB = 0;
     if (storageType === 'Network') {
         chargeableStorageGB = Math.max(0, totalStorageGB - BASELINE_STORAGE_GB); 
     }
@@ -247,7 +280,7 @@ function addToQuote() {
     }
     
     renderQuoteItems();
-    
+ */   
     // --- Reset Configuration ---
     quantityInput.value = 1;
     document.getElementById('storageLocal').checked = true; 
@@ -558,4 +591,5 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initial quote render
     renderQuoteItems();
+
 });
