@@ -375,7 +375,7 @@ async function fetchPricingData(entityKey) {
         const data = await response.json();
         
         // Using central_storage as per JSON file structure
-        if (data.entity && data.currency && Array.isArray(data.instance_pricing) && Array.isArray(data.central_storage) && Array.isArray(data.bandwidth_pricing)) {
+        if (data.entity && data.currency && Array.isArray(data.instance_pricing) && Array.isArray(data.local_nvme_storage) && Array.isArray(data.central_storage) && Array.isArray(data.bandwidth_pricing)) {
              return data;
         }
         
@@ -560,6 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderQuoteItems();
 
 });
+
 
 
 
