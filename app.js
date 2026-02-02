@@ -8,15 +8,30 @@ const ENTITY_FILES = {
     'AU': { filename: 'au.json', name: 'Australia' }
 };
 
+
 let currentPricingData = null; 
 let instanceLookup = {}; 
 let storagePricing = null; 
+let localNvmeStoragePricing = null;
 let bandwidthTiers = []; 
 let currentQuote = []; 
 const bandwidthItemId = 'GLOBAL_BANDWIDTH'; 
 const BASELINE_STORAGE_GB = 5; 
 
 // --- Quote Calculation and Rendering ---
+function mapStorageType(uiType) {
+  if (!uiType) return null;
+
+  const mapping = {
+    "local": "local_nvme",
+    "local nvme": "local_nvme",
+    "nvme": "local_nvme",
+    "network": "central",
+    "central": "central"
+  };
+
+  return mapping[uiType.toLowerCase()] || uiType.toLowerCase();
+}
 
 function updateQuoteTotal() {
     let total = 0;
@@ -220,31 +235,49 @@ function addToQuote() {
 
     // --- 2. Add Storage Cost ---
     let chargeableStorageGB = 0;
-  //  if (storageType === 'Network') {
-        chargeableStorageGB = Math.max(0, totalStorageGB - BASELINE_STORAGE_GB); 
-//    }
     
-    if (chargeableStorageGB > 0) {
+    if (storageType === 'Network') {
+        // Network storage calculation
+        chargeableStorageGB = Math.max(0, totalStorageGB - BASELINE_STORAGE_GB); 
         
-        if (!storagePricing || !storagePricing.Price_per_GB_Month) {
-             alert("Error: Network Storage pricing data is missing for this region.");
-             return;
+        if (chargeableStorageGB > 0) {
+            if (!storagePricing || !storagePricing.Price_per_GB_Month) {
+                alert("Error: Network Storage pricing data is missing for this region.");
+                return;
+            }
+            storagePricePerGBMonth = storagePricing.Price_per_GB_Month;
+            storageDescription = `Network Storage (Charged: ${chargeableStorageGB} GB/instance)`;
         }
-
-        const storagePricePerGBMonth = storagePricing.Price_per_GB_Month;
+    } else if (storageType === 'Local') {
+        // Local NVMe storage calculation - FIXED SECTION
+        chargeableStorageGB = Math.max(0, totalStorageGB - BASELINE_STORAGE_GB);
+        
+        if (chargeableStorageGB > 0) {
+            if (!localNvmeStoragePricing || !localNvmeStoragePricing.Price_per_GB_Month) {
+                alert("Error: Local NVMe Storage pricing data is missing for this region.");
+                return;
+            }
+            storagePricePerGBMonth = localNvmeStoragePricing.Price_per_GB_Month;
+            storageDescription = `Local NVMe Storage (Charged: ${chargeableStorageGB} GB/instance)`;
+        }
+    }
+    
+    // Add storage line item if there's chargeable storage
+    if (chargeableStorageGB > 0) {
         const totalStoragePrice = storagePricePerGBMonth * chargeableStorageGB * quantity;
         
         currentQuote.push({
-            item_id: `STORAGE_${selectedInstanceType}_${Date.now()}`, 
+            item_id: `STORAGE_${storageType}_${selectedInstanceType}_${Date.now()}`, 
             item_type: 'Storage',
             quantity: chargeableStorageGB * quantity, 
             quantity_display: `${chargeableStorageGB} GB/instance x ${quantity}`,
             price_per_unit: storagePricePerGBMonth,
             subtotal: totalStoragePrice,
             price_decimals: 4,
-            description: `Network Storage (Charged: ${chargeableStorageGB} GB/instance)`,
+            description: storageDescription,
         });
     }
+    
     
     renderQuoteItems();
     
@@ -410,6 +443,10 @@ async function handleEntityChange(e) {
         populateInstanceDropdown(data.instance_pricing);
         // Using central_storage as per JSON file structure
         storagePricing = data.central_storage.length > 0 ? data.central_storage[0] : null; 
+        // MODIFIED: Load local NVMe storage pricing if available
+        localNvmeStoragePricing = (data.local_nvme_storage && data.local_nvme_storage.length > 0) 
+           ? data.local_nvme_storage[0] 
+           : null;
         bandwidthTiers = data.bandwidth_pricing; 
         
         // Update region status message with loaded info (small blue font)
